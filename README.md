@@ -1,50 +1,72 @@
-# macHood
+# MacHood
 
-![Python](https://img.shields.io/badge/Language-Python%203-blue)
+![Swift](https://img.shields.io/badge/Language-Swift-orange)
+![Python](https://img.shields.io/badge/Daemon-Python%203-blue)
 ![Platform](https://img.shields.io/badge/Platform-macOS-lightgrey)
-![UI](https://img.shields.io/badge/UI-CustomTkinter-darkgreen)
 ![Framework](https://img.shields.io/badge/Framework-Quartz-orange)
 
-There really aren't many decent layout macros out there for mac players on Roblox. This is a straightforward script made to fix that, specifically for animation canceling and speed glitching in Da Hood. It works by rapidly spamming the i and o keys to handle zooming. 
+There really aren't many decent layout macros out there for mac players on Roblox. MacHood fixes that — it's a native macOS app built with Swift and a Python backend, specifically for animation canceling and speed glitching in Da Hood. It works by rapidly spamming configurable key sequences to handle zooming.
 
-Full disclosure: I used an AI to help cook up the dark UI and clean up some of the multi-threading logic because front-end layout is not my thing, but the core execution is solid.
+Full disclosure: I used AI to help with some of the Swift UI and multi-threading logic, but the core execution and architecture is solid.
 
 ---
 
 ## How It Works
 
-* Low-level inputs: Uses the macOS Quartz framework to inject keyboard events directly into the HID system so it bypasses typical software lag[cite: 1].
-* Middle click toggle: You can start or stop the loop instantly using your middle click (scroll wheel click or mapped mouse side buttons)[cite: 1].
-* CustomTkinter UI: Dark mode GUI with a live press counter and a speed slider that scales from 5 up to 200 presses per second[cite: 1].
+* **Native macOS app**: Built with Swift and SwiftUI, no Python runtime needed to launch — just open the `.app`.
+* **Python daemon**: A background Python process handles low-level input injection via the macOS Quartz framework, bypassing typical software lag.
+* **Unix socket**: Swift and Python communicate over a local Unix socket (`/tmp/machood.sock`) for real-time control.
+* **Configurable hotkey**: Toggle the macro on/off with any key or mouse button you set in the UI.
+* **Custom key sequences**: Add, remove, and reorder the keys being spammed directly from the app.
+* **Speed control**: Slider scales from 5 up to 200 presses per second.
 
 ---
 
-## Requirements
+## Download
 
-You need Python 3 installed on your Mac. You will also need a few libraries to handle the GUI and mouse/keyboard hooks:
-
-```bash
-pip3 install pyobjc-framework-Quartz pynput customtkinter
-```[cite: 1]
+Grab the latest `.dmg` from the [Releases](../../releases) page, open it, and drag MacHood into your Applications folder.
 
 ---
 
-## Running the Macro
+## Build from Source
 
-1. Clone or download this repository.
-2. Open your terminal in the script folder.
-3. Run the application file:
+Make sure you have Python 3 and the required libraries installed:
 
 ```bash
-python3 macro_app.py
-```[cite: 1]
+pip3 install pyobjc-framework-Quartz pynput
+```
 
-Note: Because this script handles global inputs via Quartz, macOS privacy settings will require you to give your Terminal application (or IDE) Accessibility Permissions under System Settings > Privacy & Security > Accessibility. Otherwise, the macro won't be able to send keys to the game.
+Then compile and build the app bundle:
+
+```bash
+swiftc MacHoodApp.swift ContentView.swift RaycastWindow.swift DaemonConnection.swift -o MacHood
+
+mkdir -p MacHood.app/Contents/MacOS
+mkdir -p MacHood.app/Contents/Resources
+
+cp MacHood MacHood.app/Contents/MacOS/MacHood
+cp cat.icns MacHood.app/Contents/Resources/cat.icns
+cp machood_daemon.py MacHood.app/Contents/Resources/
+cp Info.plist MacHood.app/Contents/Info.plist
+
+chmod +x MacHood.app/Contents/MacOS/MacHood
+open MacHood.app
+```
+
+---
+
+## Permissions
+
+Because MacHood injects global inputs via Quartz, macOS will require Accessibility permissions. Go to:
+
+**System Settings → Privacy & Security → Accessibility**
+
+And enable MacHood. Without this the macro won't be able to send keys to the game.
 
 ---
 
 ## Usage
 
-* The keys to spam default to "i o" for zooming, but you can change them in the UI text box if needed[cite: 1].
-* Adjust the slider to change your clicks per second[cite: 1].
-* Press your middle mouse button to toggle it on and off while playing[cite: 1].
+* Set your key sequence in the UI (defaults to `i` and `o` for zooming).
+* Adjust the slider to change presses per second.
+* Press your configured hotkey to toggle the macro on and off while playing.
