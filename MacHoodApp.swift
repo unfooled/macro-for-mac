@@ -11,6 +11,7 @@ struct MacHoodApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
     var daemon: DaemonConnection!
+    var daemonProcess: Process?
 
     private func installPythonDeps() {
         DispatchQueue.global(qos: .background).async {
@@ -32,7 +33,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         process.standardOutput = FileHandle.nullDevice
         process.standardError  = FileHandle.nullDevice
         try? process.run()
+        daemonProcess = process
         Thread.sleep(forTimeInterval: 1.0)
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        daemonProcess?.terminate()
+        daemonProcess?.waitUntilExit()
+        try? FileManager.default.removeItem(atPath: "/tmp/machood.lock")
+        try? FileManager.default.removeItem(atPath: "/tmp/machood.sock")
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -58,7 +67,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] e in
             if e.keyCode == 53 {
-                self?.window.orderOut(nil)
+                NSApp.terminate(nil)
                 return nil
             }
             if e.modifierFlags.contains(.command) && e.charactersIgnoringModifiers == "q" {
